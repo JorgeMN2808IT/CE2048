@@ -205,7 +205,7 @@
   (if (null? tablero)
       '()
       (cons (car (car tablero)) ;primer elemento de cada fila
-            (primeros (cdr tablero))))
+            (primeros (cdr tablero)))))
 
 
 ;obtiene resto de columnas
