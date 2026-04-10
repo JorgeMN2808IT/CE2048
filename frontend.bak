@@ -2,8 +2,10 @@
 
 (require "backend.rkt")
 
-;Interfaz gráfica del juego 2048
-;Variables globales del estado del juego
+;; =========================================================
+;; CE2048 - Interfaz gráfica
+;; =========================================================
+
 (define tablero '())
 (define puntaje 0)
 (define juego-terminado #f)
@@ -11,14 +13,15 @@
 (define filas-actuales 4)
 (define columnas-actuales 4)
 
-;Colores utilizados en la interfaz
+;; -----------------------------
+;; Colores
+;; -----------------------------
 (define color-fondo-general (make-object color% 18 26 38))
 (define color-borde (make-object color% 90 125 160))
 (define color-texto (make-object color% 235 242 250))
 (define color-tablero-fondo (make-object color% 22 32 48))
 (define color-vacio (make-object color% 54 73 92))
 
-;Define el color de cada celda según su valor
 (define (color-celda valor)
   (cond [(= valor 0)    color-vacio]
         [(= valor 2)    (make-object color% 94 129 172)]
@@ -33,20 +36,20 @@
         [(= valor 1024) (make-object color% 110 120 230)]
         [else           (make-object color% 255 90 140)]))
 
-;Define el color del texto dentro de cada celda
 (define (color-texto-celda valor)
   (if (= valor 0)
       color-vacio
       (make-object color% 255 255 255)))
 
-;Funciones auxiliares básicas
+;; -----------------------------
+;; Utilidades
+;; -----------------------------
 (define (maximo a b)
   (if (> a b) a b))
 
 (define (minimo a b)
   (if (< a b) a b))
 
-;Verifica si un número es válido para dimensiones
 (define (numero-valido? n)
   (if (number? n)
       (if (integer? n)
@@ -54,7 +57,6 @@
           #f)
       #f))
 
-;Calcula el tamaño dinámico de cada celda
 (define (tamano-celda)
   (if (null? tablero)
       70
@@ -63,29 +65,27 @@
                       (minimo (quotient 520 (columnas-tablero tablero))
                               (quotient 520 (filas-tablero tablero)))))))
 
-;Texto mostrado en el estado del juego
 (define (texto-estado)
   (string-append "Estado: " mensaje-estado))
 
-;Texto mostrado del puntaje
 (define (texto-puntaje)
   (string-append "Puntaje acumulado: " (number->string puntaje)))
 
-;Texto mostrado de la dimensión del tablero
 (define (texto-dimension)
   (string-append "Dimensión: "
                  (number->string filas-actuales)
                  " x "
                  (number->string columnas-actuales)))
 
-;Ventana principal del juego
+;; -----------------------------
+;; Ventana principal
+;; -----------------------------
 (define frame
   (new frame%
        [label "CE2048 - Proyecto Racket"]
        [width 980]
        [height 680]))
 
-;Panel principal que contiene todo
 (define panel-principal
   (new horizontal-panel%
        [parent frame]
@@ -93,7 +93,9 @@
        [stretchable-width #t]
        [stretchable-height #t]))
 
-;Panel lateral izquierdo con información y controles
+;; -----------------------------
+;; Panel izquierdo
+;; -----------------------------
 (define panel-lateral
   (new vertical-panel%
        [parent panel-principal]
@@ -102,18 +104,22 @@
        [stretchable-width #f]
        [stretchable-height #t]))
 
-(new message% [parent panel-lateral] [label "CE2048"])
-(new message% [parent panel-lateral] [label "Paradigmas de Programación"])
+(new message%
+     [parent panel-lateral]
+     [label "CE2048"])
 
-(new horizontal-pane% [parent panel-lateral])
+(new message%
+     [parent panel-lateral]
+     [label "Paradigmas de Programación"])
 
-;Panel de configuración del tablero
+(new horizontal-pane%
+     [parent panel-lateral])
+
 (define panel-config
   (new group-box-panel%
        [parent panel-lateral]
        [label "Configuración del tablero"]))
 
-;Campo para ingresar filas
 (define campo-filas
   (new text-field%
        [parent panel-config]
@@ -121,7 +127,6 @@
        [init-value "4"]
        [min-width 80]))
 
-;Campo para ingresar columnas
 (define campo-columnas
   (new text-field%
        [parent panel-config]
@@ -129,57 +134,78 @@
        [init-value "4"]
        [min-width 80]))
 
-(new horizontal-pane% [parent panel-lateral])
+(new horizontal-pane%
+     [parent panel-lateral])
 
-;Panel que muestra resumen del juego
 (define panel-resumen
   (new group-box-panel%
        [parent panel-lateral]
        [label "Resumen del juego"]))
 
 (define etiqueta-puntaje
-  (new message% [parent panel-resumen] [label "Puntaje acumulado: 0"]))
+  (new message%
+       [parent panel-resumen]
+       [label "Puntaje acumulado: 0"]))
 
 (define etiqueta-dimension
-  (new message% [parent panel-resumen] [label "Dimensión: 4 x 4"]))
+  (new message%
+       [parent panel-resumen]
+       [label "Dimensión: 4 x 4"]))
 
 (define etiqueta-estado
-  (new message% [parent panel-resumen] [label "Estado: Presione Nuevo Juego para iniciar"]))
+  (new message%
+       [parent panel-resumen]
+       [label "Estado: Presione Nuevo Juego para iniciar"]))
 
-(new horizontal-pane% [parent panel-lateral])
+(new horizontal-pane%
+     [parent panel-lateral])
 
-;Panel con instrucciones de uso
 (define panel-ayuda
   (new group-box-panel%
        [parent panel-lateral]
        [label "Controles"]))
 
-(new message% [parent panel-ayuda] [label "• Use las flechas del teclado"])
-(new message% [parent panel-ayuda] [label "• Cada jugada válida agrega una baldosa"])
-(new message% [parent panel-ayuda] [label "• Meta: alcanzar el valor 2048"])
-(new message% [parent panel-ayuda] [label "• Puede usar tableros MxN"])
+(new message%
+     [parent panel-ayuda]
+     [label "• Use las flechas del teclado"])
 
-(new horizontal-pane% [parent panel-lateral])
+(new message%
+     [parent panel-ayuda]
+     [label "• Cada jugada válida agrega una baldosa"])
 
-;Panel con botones del juego
+(new message%
+     [parent panel-ayuda]
+     [label "• Meta: alcanzar el valor 2048"])
+
+(new message%
+     [parent panel-ayuda]
+     [label "• Puede usar tableros MxN"])
+
+(new horizontal-pane%
+     [parent panel-lateral])
+
 (define panel-botones
   (new vertical-panel%
        [parent panel-lateral]
        [alignment '(center center)]))
 
-;Botón para iniciar nuevo juego
 (new button%
      [parent panel-botones]
      [label "Nuevo Juego"]
-     [callback (lambda (b e) (iniciar-desde-campos))])
+     [callback
+      (lambda (boton evento)
+        (iniciar-desde-campos))])
 
-;Botón para reiniciar con mismo tamaño
 (new button%
      [parent panel-botones]
      [label "Reiniciar mismo tamaño"]
-     [callback (lambda (b e) (crear-juego filas-actuales columnas-actuales))])
+     [callback
+      (lambda (boton evento)
+        (crear-juego filas-actuales columnas-actuales))])
 
-;Panel derecho donde se dibuja el tablero
+;; -----------------------------
+;; Panel derecho
+;; -----------------------------
 (define panel-derecho
   (new vertical-panel%
        [parent panel-principal]
@@ -187,9 +213,10 @@
        [stretchable-width #t]
        [stretchable-height #t]))
 
-(new message% [parent panel-derecho] [label "Tablero de juego"])
+(new message%
+     [parent panel-derecho]
+     [label "Tablero de juego"])
 
-;Canvas donde se dibuja el juego y se capturan teclas
 (define canvas-juego%
   (class canvas%
     (define/override (on-char evento)
@@ -207,7 +234,9 @@
 
 (define canvas-juego (new canvas-juego%))
 
-;Dibuja toda la escena del juego
+;; -----------------------------
+;; Dibujo
+;; -----------------------------
 (define (dibujar-escena dc)
   (send dc set-brush color-fondo-general 'solid)
   (send dc set-pen color-fondo-general 1 'solid)
@@ -217,23 +246,19 @@
       (dibujar-mensaje-vacio dc)
       (dibujar-tablero dc)))
 
-;Dibuja el marco del tablero
 (define (dibujar-marco dc)
   (send dc set-brush color-tablero-fondo 'solid)
   (send dc set-pen color-borde 3 'solid)
   (send dc draw-rounded-rectangle 20 20 560 560 18))
 
-;Mensaje cuando el tablero está vacío
 (define (dibujar-mensaje-vacio dc)
   (send dc set-text-foreground color-texto)
   (send dc set-font (make-object font% 18 'modern 'normal 'bold))
   (send dc draw-text "Inicialice el juego para mostrar el tablero" 110 290))
 
-;Dibuja todo el tablero
 (define (dibujar-tablero dc)
   (dibujar-filas dc tablero 0))
 
-;Dibuja filas del tablero
 (define (dibujar-filas dc filas indice-fila)
   (if (null? filas)
       (void)
@@ -241,7 +266,6 @@
         (dibujar-columnas dc (car filas) indice-fila 0)
         (dibujar-filas dc (cdr filas) (+ indice-fila 1)))))
 
-;Dibuja columnas de una fila
 (define (dibujar-columnas dc fila indice-fila indice-columna)
   (if (null? fila)
       (void)
@@ -249,7 +273,6 @@
         (dibujar-celda dc (car fila) indice-fila indice-columna)
         (dibujar-columnas dc (cdr fila) indice-fila (+ indice-columna 1)))))
 
-;Dibuja una celda individual
 (define (dibujar-celda dc valor fila columna)
   (define x (+ 35 (* columna (tamano-celda))))
   (define y (+ 35 (* fila (tamano-celda))))
@@ -263,7 +286,6 @@
       (void)
       (dibujar-valor dc valor x y lado)))
 
-;Dibuja el número dentro de la celda
 (define (dibujar-valor dc valor x y lado)
   (send dc set-text-foreground (color-texto-celda valor))
   (send dc set-font
@@ -277,31 +299,29 @@
         (+ x (desplazamiento-x valor lado))
         (+ y (desplazamiento-y lado))))
 
-;Define tamaño de fuente según el número
 (define (tamano-fuente valor)
   (cond [(< valor 100) 18]
         [(< valor 1000) 16]
         [else 13]))
 
-;Ajusta posición horizontal del texto
 (define (desplazamiento-x valor lado)
   (cond [(< valor 10)   (- (quotient lado 2) 4)]
         [(< valor 100)  (- (quotient lado 2) 10)]
         [(< valor 1000) (- (quotient lado 2) 16)]
         [else           (- (quotient lado 2) 22)]))
 
-;Ajusta posición vertical del texto
 (define (desplazamiento-y lado)
   (- (quotient lado 2) 12))
 
-;Actualiza etiquetas del juego y redibuja
+;; -----------------------------
+;; Lógica de GUI
+;; -----------------------------
 (define (actualizar-etiquetas)
   (send etiqueta-puntaje set-label (texto-puntaje))
   (send etiqueta-dimension set-label (texto-dimension))
   (send etiqueta-estado set-label (texto-estado))
   (send canvas-juego refresh))
 
-;Crea un nuevo juego con dimensiones dadas
 (define (crear-juego filas columnas)
   (set! filas-actuales filas)
   (set! columnas-actuales columnas)
@@ -312,7 +332,6 @@
   (actualizar-etiquetas)
   (send canvas-juego focus))
 
-;Inicia juego usando valores ingresados
 (define (iniciar-desde-campos)
   (define valor-filas (string->number (send campo-filas get-value)))
   (define valor-columnas (string->number (send campo-columnas get-value)))
@@ -322,12 +341,10 @@
           (mostrar-error-dimensiones))
       (mostrar-error-dimensiones)))
 
-;Muestra error si dimensiones no son válidas
 (define (mostrar-error-dimensiones)
   (set! mensaje-estado "Dimensiones inválidas. Use enteros mayores a 1")
   (actualizar-etiquetas))
 
-;Maneja las teclas del teclado
 (define (manejar-tecla tecla)
   (if juego-terminado
       (void)
@@ -337,7 +354,6 @@
             [(equal? tecla 'down)  (procesar-movimiento (mover-abajo tablero))]
             [else (void)])))
 
-;Procesa el resultado de un movimiento
 (define (procesar-movimiento resultado)
   (if (tablero-igual? tablero (car resultado))
       (begin
@@ -345,13 +361,11 @@
         (actualizar-etiquetas))
       (aplicar-jugada resultado)))
 
-;Aplica una jugada válida al tablero
 (define (aplicar-jugada resultado)
   (set! tablero (agregar-nueva-baldosa (car resultado)))
   (set! puntaje (+ puntaje (cdr resultado)))
   (revisar-estado-juego))
 
-;Revisa si el juego terminó o continúa
 (define (revisar-estado-juego)
   (if (hay-2048? tablero)
       (begin
@@ -367,7 +381,9 @@
             (set! mensaje-estado "No quedan movimientos")
             (actualizar-etiquetas)))))
 
-;Inicio automático del juego
+;; -----------------------------
+;; Inicio
+;; -----------------------------
 (crear-juego 4 4)
 (send frame show #t)
 (send canvas-juego focus)
